@@ -72,7 +72,7 @@
                                                 charWidth: gv[i].charWidth,
                                                 seqHeight: gv[i].seqHeight
                                             });
-                   node = gv[i].addTrack("DNA,gene,mRNA,noncodingRNA");
+                   node = gv[i].addTrack(newTrack);
 
                return {node: node, data: track, type: ["track"]};
            };
