@@ -35,65 +35,59 @@
     /* <![CDATA[ */
 
     dojo.addOnLoad(
-        function() {
+        function(num) {
 
            var refSeq = refSeqs[21];
-           var gv1 = new GenomeView(dojo.byId("species1"), 250, refSeq, 1/1000);
-           var gv2 = new GenomeView(dojo.byId("species2"), 250, refSeq, 1/1000);
+
+           var gv = new Array();
+           var viewDndWidget = new Array();
+           var trackCreate = new Array();
+
+           var numSeqs = 4;
+           var percent = 100 / numSeqs;
+           for (var i=0;i<numSeqs;i=i+1) {
+ 
+           var e = document.createElement("div");
+           e.id = "species" + i;
+           e.style.top = (i * percent) +  "%";
+           e.style.height = percent + "%";
+           e.style.width = "100%";
+           e.setAttribute("class","dragWindow");
+           document.body.appendChild(e);
+
+           gv[i] = new GenomeView(dojo.byId("species"+i), 250, refSeq, 1/1000);
 
            var track = trackInfo[2];
 
-           var trackCreate1 = function(track, hint) {
+           trackCreate[i] = function(track, hint) {
                var node;
                    var replaceData = {refseq: refSeq.name};
                    var url = track.url.replace(/\{([^}]+)\}/g, function(match, group) {return replaceData[group];});
                    var klass = eval(track.type);
                    var newTrack = new klass(track, url, refSeq,
                                             {
-                                                changeCallback: function() {gv1.showVisibleBlocks()},
-                                                trackPadding: gv1.trackPadding,
+                                                changeCallback: function() {gv[i].showVisibleBlocks()},
+                                                trackPadding: gv[i].trackPadding,
                                                 baseUrl: "",
-                                                charWidth: gv1.charWidth,
-                                                seqHeight: gv1.seqHeight
+                                                charWidth: gv[i].charWidth,
+                                                seqHeight: gv[i].seqHeight
                                             });
-                   node = gv1.addTrack(newTrack);
+                   node = gv[i].addTrack("DNA,gene,mRNA,noncodingRNA");
 
                return {node: node, data: track, type: ["track"]};
            };
 
-           var viewDndWidget1 = new dojo.dnd.Source(gv1.zoomContainer,
+           viewDndWidget[i] = new dojo.dnd.Source(gv[i].zoomContainer,
                                                     {
-                                                        creator: trackCreate1,
+                                                        creator: trackCreate[i],
                                                         accept: ["track"],
                                                         withHandles: true
                                                     });
 
-           var trackCreate2 = function(track, hint) {
-               var node;
-                   var replaceData = {refseq: refSeq.name};
-                   var url = track.url.replace(/\{([^}]+)\}/g, function(match, group) {return replaceData[group];});
-                   var klass = eval(track.type);
-                   var newTrack = new klass(track, url, refSeq,
-                                            {
-                                                changeCallback: function() {gv2.showVisibleBlocks()},
-                                                trackPadding: gv2.trackPadding,
-                                                baseUrl: "",
-                                                charWidth: gv2.charWidth,
-                                                seqHeight: gv2.seqHeight
-                                            });
-                   node = gv2.addTrack(newTrack);
-               return {node: node, data: track, type: ["track"]};
-           };
 
-           var viewDndWidget2 = new dojo.dnd.Source(gv2.zoomContainer,
-                                                    {
-                                                        creator: trackCreate2,
-                                                        accept: ["track"],
-                                                        withHandles: true
-                                                    });
+           viewDndWidget[i].insertNodes(false, [track]);
 
-           viewDndWidget1.insertNodes(false, [track]);
-           viewDndWidget2.insertNodes(false, [track]);
+           }
 
         })
     /* ]]> */
@@ -101,7 +95,5 @@
   </head>
   
   <body>
-    <div id="species1" class="dragWindow" style="height: 50%; width: 100%; padding: 0; border: 0; top: 0%;"></div>
-    <div id="species2" class="dragWindow" style="height: 50%; width: 100%; padding: 0; border: 0; top: 50%;"></div>
   </body>
 </html>
