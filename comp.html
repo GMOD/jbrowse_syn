@@ -59,23 +59,24 @@
 
            var track = trackInfo[2];
 
-           trackCreate[i] = function(track, hint) {
+           trackCreate[i] = function (x) {
+               return function(track, hint) {
                var node;
                    var replaceData = {refseq: refSeq.name};
                    var url = track.url.replace(/\{([^}]+)\}/g, function(match, group) {return replaceData[group];});
                    var klass = eval(track.type);
                    var newTrack = new klass(track, url, refSeq,
                                             {
-                                                changeCallback: function() {gv[i].showVisibleBlocks()},
-                                                trackPadding: gv[i].trackPadding,
+                                                changeCallback: function() {gv[x].showVisibleBlocks()},
+                                                trackPadding: gv[x].trackPadding,
                                                 baseUrl: "",
-                                                charWidth: gv[i].charWidth,
-                                                seqHeight: gv[i].seqHeight
+                                                charWidth: gv[x].charWidth,
+                                                seqHeight: gv[x].seqHeight
                                             });
-                   node = gv[i].addTrack(newTrack);
+                   node = gv[x].addTrack(newTrack);
 
                return {node: node, data: track, type: ["track"]};
-           };
+           }}(i);
 
            viewDndWidget[i] = new dojo.dnd.Source(gv[i].zoomContainer,
                                                     {
