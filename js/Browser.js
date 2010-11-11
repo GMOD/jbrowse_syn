@@ -51,7 +51,16 @@ var Browser = function(params) {
             var overview = document.createElement("div");
             overview.className = "overview";
             overview.id = "overview";
+            overview.style.height = "10px";
             topPane.appendChild(overview);
+            brwsr.overview = overview;
+            brwsr.overviewBox = dojo.marginBox(overview);
+            brwsr.locationThumb = document.createElement("div");
+            brwsr.locationThumb.className = "locationThumb";
+            brwsr.overview.appendChild(brwsr.locationThumb);
+            brwsr.locationThumbMover = new dojo.dnd.move.parentConstrainedMoveable(brwsr.locationThumb, {area: "margin", within: true});
+            dojo.connect(brwsr.locationThumbMover, "onMoveStop", brwsr, "thumbMoved");
+
             //try to come up with a good estimate of how big the location box
             //actually has to be
             var maxBase = refSeqs.reduce(function(a,b) {return a.end > b.end ? a : b;}).end;
@@ -164,30 +173,40 @@ var Browser = function(params) {
 /**
  * @private
  */
+Browser.prototype.thumbMoved = function(mover) {
+    var pxLeft = parseInt(this.locationThumb.style.left);
+    var pxWidth = parseInt(this.locationThumb.style.width);
+    var pxCenter = pxLeft + (pxWidth / 2);
+    this.view.centerAtBase(((pxCenter / this.overviewBox.w) * (this.view.ref.end - this.view.ref.start)) + this.view.ref.start);
+};
+
+/**
+ * @private
+ */
 Browser.prototype.onFineMove = function(startbp, endbp) {
     var length = this.view.ref.end - this.view.ref.start;
     var trapLeft = Math.round((((startbp - this.view.ref.start) / length)
-                               * this.view.overviewBox.w) + this.view.overviewBox.l);
+                               * this.overviewBox.w) + this.overviewBox.l);
     var trapRight = Math.round((((endbp - this.view.ref.start) / length)
-                                * this.view.overviewBox.w) + this.view.overviewBox.l);
+                                * this.overviewBox.w) + this.overviewBox.l);
     var locationTrapStyle;
     if (dojo.isIE) {
         //IE apparently doesn't like borders thicker than 1024px
         locationTrapStyle =
-            "top: " + this.view.overviewBox.t + "px;"
-            + "height: " + this.view.overviewBox.h + "px;"
+            "top: " + this.overviewBox.t + "px;"
+            + "height: " + this.overviewBox.h + "px;"
             + "left: " + trapLeft + "px;"
             + "width: " + (trapRight - trapLeft) + "px;"
             + "border-width: 0px";
     } else {
         locationTrapStyle =
-            "top: " + this.view.overviewBox.t + "px;"
-            + "height: " + this.view.overviewBox.h + "px;"
-            + "left: " + this.view.overviewBox.l + "px;"
+            "top: " + this.overviewBox.t + "px;"
+            + "height: " + this.overviewBox.h + "px;"
+            + "left: " + this.overviewBox.l + "px;"
             + "width: " + (trapRight - trapLeft) + "px;"
             + "border-width: " + "0px "
-            + (this.view.overviewBox.w - trapRight) + "px "
-            + this.view.locationTrapHeight + "px " + trapLeft + "px;";
+            + (this.overviewBox.w - trapRight) + "px "
+            + this.locationTrapHeight + "px " + trapLeft + "px;";
     }
 
     this.locationTrap.style.cssText = locationTrapStyle;
@@ -491,12 +510,12 @@ Browser.prototype.visibleTracks = function() {
 Browser.prototype.onCoarseMove = function(startbp, endbp) {
     var length = this.view.ref.end - this.view.ref.start;
     var trapLeft = Math.round((((startbp - this.view.ref.start) / length)
-                               * this.view.overviewBox.w) + this.view.overviewBox.l);
+                               * this.overviewBox.w) + this.overviewBox.l);
     var trapRight = Math.round((((endbp - this.view.ref.start) / length)
-                                * this.view.overviewBox.w) + this.view.overviewBox.l);
+                                * this.overviewBox.w) + this.overviewBox.l);
 
-    this.view.locationThumb.style.cssText =
-    "height: " + (this.view.overviewBox.h - 4) + "px; "
+    this.locationThumb.style.cssText =
+    "height: " + (this.overviewBox.h - 4) + "px; "
     + "left: " + trapLeft + "px; "
     + "width: " + (trapRight - trapLeft) + "px;"
     + "z-index: 20";
