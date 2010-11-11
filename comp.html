@@ -34,6 +34,9 @@
     <script type="text/javascript">
     /* <![CDATA[ */
 
+    //var jsyn = new JBrowseSyn(dojo.byId("jsyn"));
+    //jsyn.setTaxonOrder(["species1", "species2"]);
+
     dojo.addOnLoad(
         function(num) {
 
@@ -43,8 +46,10 @@
            var viewDndWidget = new Array();
            var trackCreate = new Array();
 
-           var numSeqs = 4;
+           var numSeqs = 7;
            var percent = 100 / numSeqs;
+           var cont = dojo.byId("jsyn");
+
            for (var i=0;i<numSeqs;i=i+1) {
  
            var e = document.createElement("div");
@@ -53,9 +58,10 @@
            e.style.height = percent + "%";
            e.style.width = "100%";
            e.setAttribute("class","dragWindow");
-           document.body.appendChild(e);
+           e.style.position="absolute";
+           cont.appendChild(e);
 
-           gv[i] = new GenomeView(dojo.byId("species"+i), 250, refSeq, 1/1000);
+           gv[i] = new GenomeView(e, 250, refSeq, 1/1000);
 
            var track = trackInfo[2];
 
@@ -98,5 +104,6 @@
   </head>
   
   <body>
+    <div id="jsyn" style="height: 80%; width: 80%; padding: 0; border: 0;"></div>
   </body>
 </html>
