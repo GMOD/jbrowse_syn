@@ -35,9 +35,13 @@ PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
             /* <![CDATA[ */
 
             var jsyn = new JBrowseSyn({containerID: "jsyn",
-                trackData: trackInfo,
-                refSeqs: refSeqs});
-            //jsyn.setTaxonOrder(["species1", "species2"]);
+                tracks: [{ID: "species1",
+                        refSeqURL: "data/refSeqs.json",
+                        trackInfoURL: "data/trackInfo.json"},
+                    {ID: "species2",
+                        refSeqURL: "data/refSeqs.json",
+                        trackInfoURL: "data/trackInfo.json"}]
+            });
 
             /* ]]> */
         </script>

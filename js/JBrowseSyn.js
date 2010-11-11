@@ -10,8 +10,7 @@ var JBrowseSyn = function(params) {
     dojo.require("dijit.layout.ContentPane");
     dojo.require("dijit.layout.BorderContainer");
 
-    var refSeqs = params.refSeqs;
-    var trackData = params.trackData;
+    var trackData;
     this.deferredFunctions = [];
     this.dataRoot = params.dataRoot;
     var dataRoot;
@@ -28,72 +27,81 @@ var JBrowseSyn = function(params) {
     dojo.addOnLoad(
         function() {
 
-            var refSeq = refSeqs[21];
-
             var gv = new Array();
             var viewDndWidget = new Array();
             var trackCreate = new Array();
 
-            var numSeqs = 3;
+            var numSeqs = params.tracks.length;
             var percent = 100 / numSeqs;
             var cont = dojo.byId(params.containerID);
 
             for (var i=0;i<numSeqs;i=i+1) {
 
-                var e = document.createElement("div");
-                e.id = "species" + i;
-                e.style.top = (i * percent) +  "%";
-                e.style.height = percent + "%";
-                e.style.width = "100%";
-                e.setAttribute("class","dragWindow");
-                e.style.position="absolute";
-                cont.appendChild(e);
+                dojo.xhrGet({
+                    url: params.tracks[i].refSeqURL,
+                    handleAs: "json",
+                    load: function(o) {
+                        var refSeqs = o;
 
-                gv[i] = new GenomeView(e, 250, refSeq, 1/1000);
+                        var refSeq = refSeqs[21];
 
-                var track = trackInfo[2];
+                        var e = document.createElement("div");
+                        e.id = "species" + i;
+                        e.style.top = (i * percent) +  "%";
+                        e.style.height = percent + "%";
+                        e.style.width = "100%";
+                        e.setAttribute("class","dragWindow");
+                        e.style.position="absolute";
+                        cont.appendChild(e);
 
-                trackCreate[i] = function (x) {
-                    return function(track, hint) {
-                        var node;
-                        var replaceData = {
-                            refseq: refSeq.name
-                        };
-                        var url = track.url.replace(/\{([^}]+)\}/g, function(match, group) {
-                            return replaceData[group];
-                        });
-                        var klass = eval(track.type);
-                        var newTrack = new klass(track, url, refSeq,
+                        gv[i] = new GenomeView(e, 250, refSeq, 1/1000);
+
+                        var track = trackInfo[2];
+
+                        trackCreate[i] = function (x) {
+                            return function(track, hint) {
+                                var node;
+                                var replaceData = {
+                                    refseq: refSeq.name
+                                };
+                                var url = track.url.replace(/\{([^}]+)\}/g, function(match, group) {
+                                    return replaceData[group];
+                                });
+                                var klass = eval(track.type);
+                                var newTrack = new klass(track, url, refSeq,
+                                {
+                                    changeCallback: function() {
+                                        gv[x].showVisibleBlocks()
+                                    },
+                                    trackPadding: gv[x].trackPadding,
+                                    baseUrl: "",
+                                    charWidth: gv[x].charWidth,
+                                    seqHeight: gv[x].seqHeight
+                                });
+                                node = gv[x].addTrack(newTrack);
+
+                                return {
+                                    node: node,
+                                    data: track,
+                                    type: ["track"]
+                                };
+                            }
+                        }(i);
+
+                        viewDndWidget[i] = new dojo.dnd.Source(gv[i].zoomContainer,
                         {
-                            changeCallback: function() {
-                                gv[x].showVisibleBlocks()
-                            },
-                            trackPadding: gv[x].trackPadding,
-                            baseUrl: "",
-                            charWidth: gv[x].charWidth,
-                            seqHeight: gv[x].seqHeight
+                            creator: trackCreate[i],
+                            accept: ["track"],
+                            withHandles: true
                         });
-                        node = gv[x].addTrack(newTrack);
 
-                        return {
-                            node: node,
-                            data: track,
-                            type: ["track"]
-                        };
+
+                        viewDndWidget[i].insertNodes(false, [track]);
+                        gv[i].updateTrackList();
+                        gv[i].centerAtBase(20000000);
+
                     }
-                }(i);
-
-                viewDndWidget[i] = new dojo.dnd.Source(gv[i].zoomContainer,
-                {
-                    creator: trackCreate[i],
-                    accept: ["track"],
-                    withHandles: true
                 });
-
-
-                viewDndWidget[i].insertNodes(false, [track]);
-                gv[i].updateTrackList();
-                gv[i].centerAtBase(20000000);
 
             }
         });
@@ -419,7 +427,7 @@ JBrowseSyn.prototype.showTracks = function(trackNameList) {
     if (!this.isInitialized) {
         var brwsr = this;
         this.deferredFunctions.push(
-            function() { 
+            function() {
                 brwsr.showTracks(trackNameList);
             }
             );
@@ -651,4 +659,4 @@ redistribute it and/or modify it under the terms of the LGPL (either
 version 2.1, or at your option, any later version) or the Artistic
 License 2.0.  Refer to LICENSE for the full license text.
 
-*/
+ */
