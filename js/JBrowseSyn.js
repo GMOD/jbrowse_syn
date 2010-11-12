@@ -33,75 +33,88 @@ var JBrowseSyn = function(params) {
                     url: params.tracks[i].refSeqURL,
                     handleAs: "json",
                     load: function(o) {
-                        var refSeqs = o;
 
-                        var refSeq = refSeqs[21];
+                        dojo.xhrGet({
+                            url: params.tracks[i].trackInfoURL,
+                            handleAs: "json",
+                            load: function(p) {
 
-                        var e = document.createElement("div");
-                        e.id = "species" + i;
-                        e.style.top = (i * percent) +  "%";
-                        e.style.height = percent + "%";
-                        e.style.width = "100%";
-                        e.setAttribute("class","dragWindow");
-                        e.style.position="absolute";
-                        cont.appendChild(e);
+                                var refSeqs = o;
+                                var trackInfo = p;
 
-                        gv[i] = new GenomeView(e, 250, refSeq, 1/1000);
+                                var refSeq = refSeqs[21];
 
-                        var track = trackInfo[2];
+                                var e = document.createElement("div");
+                                e.id = "species" + i;
+                                e.style.top = (i * percent) +  "%";
+                                e.style.height = percent + "%";
+                                e.style.width = "100%";
+                                e.setAttribute("class","dragWindow");
+                                e.style.position="absolute";
+                                cont.appendChild(e);
 
-                        trackCreate[i] = function (x) {
-                            return function(track, hint) {
-                                var node;
-                                var replaceData = {
-                                    refseq: refSeq.name
-                                };
-                                var url = track.url.replace(/\{([^}]+)\}/g, function(match, group) {
-                                    return replaceData[group];
-                                });
-                                var klass = eval(track.type);
-                                var newTrack = new klass(track, url, refSeq,
+                                gv[i] = new GenomeView(e, 250, refSeq, 1/1000);
+
+                                var track = trackInfo[2];
+
+                                trackCreate[i] = function (x) {
+                                    return function(track, hint) {
+                                        var node;
+                                        var replaceData = {
+                                            refseq: refSeq.name
+                                        };
+                                        var url = track.url.replace(/\{([^}]+)\}/g, function(match, group) {
+                                            return replaceData[group];
+                                        });
+                                        var klass = eval(track.type);
+                                        var newTrack = new klass(track, url, refSeq,
+                                        {
+                                            changeCallback: function() {
+                                                gv[x].showVisibleBlocks()
+                                            },
+                                            trackPadding: gv[x].trackPadding,
+                                            baseUrl: "",
+                                            charWidth: gv[x].charWidth,
+                                            seqHeight: gv[x].seqHeight
+                                        });
+                                        node = gv[x].addTrack(newTrack);
+
+                                        return {
+                                            node: node,
+                                            data: track,
+                                            type: ["track"]
+                                        };
+                                    }
+                                }(i);
+
+                                viewDndWidget[i] = new dojo.dnd.Source(gv[i].zoomContainer,
                                 {
-                                    changeCallback: function() {
-                                        gv[x].showVisibleBlocks()
-                                    },
-                                    trackPadding: gv[x].trackPadding,
-                                    baseUrl: "",
-                                    charWidth: gv[x].charWidth,
-                                    seqHeight: gv[x].seqHeight
+                                    creator: trackCreate[i],
+                                    accept: ["track"],
+                                    withHandles: true
                                 });
-                                node = gv[x].addTrack(newTrack);
-
-                                return {
-                                    node: node,
-                                    data: track,
-                                    type: ["track"]
-                                };
-                            }
-                        }(i);
-
-                        viewDndWidget[i] = new dojo.dnd.Source(gv[i].zoomContainer,
-                        {
-                            creator: trackCreate[i],
-                            accept: ["track"],
-                            withHandles: true
-                        });
 
 
-                        viewDndWidget[i].insertNodes(false, [track]);
-                        gv[i].updateTrackList();
-                        gv[i].centerAtBase(20000000);
+                                viewDndWidget[i].insertNodes(false, [track]);
+                                gv[i].updateTrackList();
+                                gv[i].centerAtBase(20000000);
 
-                    }
-                });
+                            } // load
 
-            }
+                        }); // xhrGet
+
+                    } // load
+
+                }); // xhrGet
+
+            } // for i
+            
         });
 };
 
 /**
- * @private
- */
+     * @private
+     */
 JBrowseSyn.prototype.thumbMoved = function(mover) {
     var pxLeft = parseInt(this.locationThumb.style.left);
     var pxWidth = parseInt(this.locationThumb.style.width);
@@ -110,8 +123,8 @@ JBrowseSyn.prototype.thumbMoved = function(mover) {
 };
 
 /**
- * @private
- */
+     * @private
+     */
 JBrowseSyn.prototype.onFineMove = function(startbp, endbp) {
     var length = this.view.ref.end - this.view.ref.start;
     var trapLeft = Math.round((((startbp - this.view.ref.start) / length)
@@ -142,8 +155,8 @@ JBrowseSyn.prototype.onFineMove = function(startbp, endbp) {
 };
 
 /**
- * @private
- */
+     * @private
+     */
 JBrowseSyn.prototype.createTrackList = function(parent, params) {
     var leftPane = document.createElement("div");
     leftPane.style.cssText="width: 10em";
@@ -249,8 +262,8 @@ JBrowseSyn.prototype.createTrackList = function(parent, params) {
 };
 
 /**
- * @private
- */
+     * @private
+     */
 JBrowseSyn.prototype.onVisibleTracksChanged = function() {
     this.view.updateTrackList();
     var trackLabels = dojo.map(this.view.tracks,
@@ -266,12 +279,12 @@ JBrowseSyn.prototype.onVisibleTracksChanged = function() {
 };
 
 /**
- * @private
- * add new tracks to the track list
- * @param trackList list of track information items
- * @param replace true if this list of tracks should replace any existing
- * tracks, false to merge with the existing list of tracks
- */
+     * @private
+     * add new tracks to the track list
+     * @param trackList list of track information items
+     * @param replace true if this list of tracks should replace any existing
+     * tracks, false to merge with the existing list of tracks
+     */
 
 JBrowseSyn.prototype.addTracks = function(trackList, replace) {
     if (!this.isInitialized) {
@@ -294,21 +307,21 @@ JBrowseSyn.prototype.addTracks = function(trackList, replace) {
 };
 
 /**
- * navigate to a given location
- * @example
- * gb=dojo.byId("GenomeJBrowseSyn").genomeBrowser
- * gb.navigateTo("ctgA:100..200")
- * gb.navigateTo("f14")
- * @param loc can be either:<br>
- * &lt;chromosome&gt;:&lt;start&gt; .. &lt;end&gt;<br>
- * &lt;start&gt; .. &lt;end&gt;<br>
- * &lt;center base&gt;<br>
- * &lt;feature name/ID&gt;
- */
+     * navigate to a given location
+     * @example
+     * gb=dojo.byId("GenomeJBrowseSyn").genomeBrowser
+     * gb.navigateTo("ctgA:100..200")
+     * gb.navigateTo("f14")
+     * @param loc can be either:<br>
+     * &lt;chromosome&gt;:&lt;start&gt; .. &lt;end&gt;<br>
+     * &lt;start&gt; .. &lt;end&gt;<br>
+     * &lt;center base&gt;<br>
+     * &lt;feature name/ID&gt;
+     */
 JBrowseSyn.prototype.navigateTo = function(loc) {
     if (!this.isInitialized) {
         var brwsr = this;
-        this.deferredFunctions.push(function() { 
+        this.deferredFunctions.push(function() {
             brwsr.navigateTo(loc);
         });
         return;
@@ -407,14 +420,14 @@ JBrowseSyn.prototype.navigateTo = function(loc) {
 };
 
 /**
- * load and display the given tracks
- * @example
- * gb=dojo.byId("GenomeBrowser").genomeBrowser
- * gb.showTracks("DNA,gene,mRNA,noncodingRNA")
- * @param trackNameList {String} comma-delimited string containing track names,
- * each of which should correspond to the "label" element of the track
- * information dictionaries
- */
+     * load and display the given tracks
+     * @example
+     * gb=dojo.byId("GenomeBrowser").genomeBrowser
+     * gb.showTracks("DNA,gene,mRNA,noncodingRNA")
+     * @param trackNameList {String} comma-delimited string containing track names,
+     * each of which should correspond to the "label" element of the track
+     * information dictionaries
+     */
 JBrowseSyn.prototype.showTracks = function(trackNameList) {
     if (!this.isInitialized) {
         var brwsr = this;
@@ -447,17 +460,17 @@ JBrowseSyn.prototype.showTracks = function(trackNameList) {
 };
 
 /**
- * @returns {String} string representation of the current location<br>
- * (suitable for passing to navigateTo)
- */
+     * @returns {String} string representation of the current location<br>
+     * (suitable for passing to navigateTo)
+     */
 JBrowseSyn.prototype.visibleRegion = function() {
     return this.view.ref.name + ":" + Math.round(this.view.minVisible()) + ".." + Math.round(this.view.maxVisible());
 };
 
 /**
- * @returns {String} containing comma-separated list of currently-viewed tracks<br>
- * (suitable for passing to showTracks)
- */
+     * @returns {String} containing comma-separated list of currently-viewed tracks<br>
+     * (suitable for passing to showTracks)
+     */
 JBrowseSyn.prototype.visibleTracks = function() {
     var trackLabels = dojo.map(this.view.tracks,
         function(track) {
@@ -467,8 +480,8 @@ JBrowseSyn.prototype.visibleTracks = function() {
 };
 
 /**
- * @private
- */
+     * @private
+     */
 JBrowseSyn.prototype.onCoarseMove = function(startbp, endbp) {
     var length = this.view.ref.end - this.view.ref.start;
     var trapLeft = Math.round((((startbp - this.view.ref.start) / length)
@@ -502,8 +515,8 @@ JBrowseSyn.prototype.onCoarseMove = function(startbp, endbp) {
 };
 
 /**
- * @private
- */
+     * @private
+     */
 JBrowseSyn.prototype.createNavBox = function(parent, locLength, params) {
     var brwsr = this;
     var navbox = document.createElement("div");
@@ -640,7 +653,7 @@ JBrowseSyn.prototype.createNavBox = function(parent, locLength, params) {
     return navbox;
 };
 
-/*
+    /*
 
 Copyright (c) 2007-2009 The Evolutionary Software Foundation
 
@@ -651,4 +664,4 @@ redistribute it and/or modify it under the terms of the LGPL (either
 version 2.1, or at your option, any later version) or the Artistic
 License 2.0.  Refer to LICENSE for the full license text.
 
- */
+     */
