@@ -27,83 +27,87 @@ var JBrowseSyn = function(params) {
             var percent = 100 / numSeqs;
             var cont = dojo.byId(params.containerID);
 
-            for (var i=0;i<numSeqs;i=i+1) {
+            for (var j=0;j<numSeqs;j=j+1) {
 
                 dojo.xhrGet({
-                    url: params.tracks[i].refSeqURL,
+                    url: params.tracks[j].refSeqURL,
                     handleAs: "json",
-                    load: function(o) {
+                    load: function (i) {
+                        return function(o) {
 
-                        dojo.xhrGet({
-                            url: params.tracks[i].trackInfoURL,
-                            handleAs: "json",
-                            load: function(p) {
+                            dojo.xhrGet({
+                                url: params.tracks[i].trackInfoURL,
+                                handleAs: "json",
+                                load: function(p) {
 
-                                var refSeqs = o;
-                                var trackInfo = p;
+                                    var refSeqs = o;
+                                    var trackInfo = p;
 
-                                var refSeq = refSeqs[21];
+                                    var refSeq = refSeqs[21];
 
-                                var e = document.createElement("div");
-                                e.id = "species" + i;
-                                e.style.top = (i * percent) +  "%";
-                                e.style.height = percent + "%";
-                                e.style.width = "100%";
-                                e.setAttribute("class","dragWindow");
-                                e.style.position="absolute";
-                                cont.appendChild(e);
+                                    var e = document.createElement("div");
+                                    e.id = "species" + i;
+                                    e.style.top = (i * percent) +  "%";
+                                    e.style.height = percent + "%";
+                                    e.style.width = "100%";
+                                    e.setAttribute("class","dragWindow");
+                                    e.style.position="absolute";
+                                    cont.appendChild(e);
 
-                                gv[i] = new GenomeView(e, 250, refSeq, 1/1000);
+                                    gv[i] = new GenomeView(e, 250, refSeq, 1/1000);
 
-                                var track = trackInfo[2];
+                                    var track = trackInfo[2];
 
-                                trackCreate[i] = function (x) {
-                                    return function(track, hint) {
-                                        var node;
-                                        var replaceData = {
-                                            refseq: refSeq.name
-                                        };
-                                        var url = track.url.replace(/\{([^}]+)\}/g, function(match, group) {
-                                            return replaceData[group];
-                                        });
-                                        var klass = eval(track.type);
-                                        var newTrack = new klass(track, url, refSeq,
-                                        {
-                                            changeCallback: function() {
-                                                gv[x].showVisibleBlocks()
-                                            },
-                                            trackPadding: gv[x].trackPadding,
-                                            baseUrl: "",
-                                            charWidth: gv[x].charWidth,
-                                            seqHeight: gv[x].seqHeight
-                                        });
-                                        node = gv[x].addTrack(newTrack);
+                                    trackCreate[i] = function (x) {
+                                        return function(track, hint) {
+                                            var node;
+                                            var replaceData = {
+                                                refseq: refSeq.name
+                                            };
+                                            var url = track.url.replace(/\{([^}]+)\}/g, function(match, group) {
+                                                return replaceData[group];
+                                            });
+                                            var klass = eval(track.type);
+                                            var newTrack = new klass(track, url, refSeq,
+                                            {
+                                                changeCallback: function() {
+                                                    gv[x].showVisibleBlocks()
+                                                },
+                                                trackPadding: gv[x].trackPadding,
+                                                baseUrl: "",
+                                                charWidth: gv[x].charWidth,
+                                                seqHeight: gv[x].seqHeight
+                                            });
+                                            node = gv[x].addTrack(newTrack);
 
-                                        return {
-                                            node: node,
-                                            data: track,
-                                            type: ["track"]
-                                        };
-                                    }
-                                }(i);
+                                            return {
+                                                node: node,
+                                                data: track,
+                                                type: ["track"]
+                                            };
+                                        }
+                                    }(i);
 
-                                viewDndWidget[i] = new dojo.dnd.Source(gv[i].zoomContainer,
-                                {
-                                    creator: trackCreate[i],
-                                    accept: ["track"],
-                                    withHandles: true
-                                });
+                                    viewDndWidget[i] = new dojo.dnd.Source(gv[i].zoomContainer,
+                                    {
+                                        creator: trackCreate[i],
+                                        accept: ["track"],
+                                        withHandles: true
+                                    });
 
 
-                                viewDndWidget[i].insertNodes(false, [track]);
-                                gv[i].updateTrackList();
-                                gv[i].centerAtBase(20000000);
+                                    viewDndWidget[i].insertNodes(false, [track]);
+                                    gv[i].updateTrackList();
+                                    gv[i].centerAtBase(20000000);
 
-                            } // load
+                                } // load
+                                
 
-                        }); // xhrGet
+                            }); // xhrGet
 
-                    } // load
+                        }
+
+                    } (j) // load
 
                 }); // xhrGet
 
