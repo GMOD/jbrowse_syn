@@ -10,17 +10,9 @@ var JBrowseSyn = function(params) {
     dojo.require("dijit.layout.ContentPane");
     dojo.require("dijit.layout.BorderContainer");
 
-    var trackData;
+    //var trackData;
     this.deferredFunctions = [];
-    this.dataRoot = params.dataRoot;
-    var dataRoot;
-    if ("dataRoot" in params)
-        dataRoot = params.dataRoot;
-    else
-        dataRoot = "";
-
-    this.names = new LazyTrie(dataRoot + "data/names/lazy-",
-        dataRoot + "data/names/root.json");
+    this.dataRoot = "";
     this.tracks = [];
     var brwsr = this;
     brwsr.isInitialized = false;
